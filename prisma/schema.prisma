@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── Auth.js v5 required models (do NOT rename or remove fields) ──────────────
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─── Core Application Models ──────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  passwordHash  String?
+  role          String    @default("retail")
+  // Allowed: "guest" | "retail" | "b2b_pending" | "b2b_approved" | "admin"
+  businessName  String?
+  gstin         String?
+  status        String    @default("active")
+  // Allowed: "active" | "suspended"
+  emailVerified DateTime?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses Address[]
+  orders    Order[]
+  b2bApp    B2BApplication?
+  accounts  Account[]
+  sessions  Session[]
+}
+
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  label     String   @default("home")
+  // "home" | "work" | "other"
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
+}
+
+model Product {
+  id                     String   @id @default(cuid())
+  slug                   String   @unique
+  // URL-friendly: "floral-anarkali-kurti-red"
+  title                  String
+  description            String?
+  category               String
+  // "kurtis" | "leggings" | "two_piece_suits" | "three_piece_suits"
+  images                 String   @default("[]")
+  // JSON string: [{ "url": "/uploads/abc.jpg", "alt": "..." }]
+  retailPrice            Float
+  // GST-inclusive (B2C shown price)
+  wholesalePricePerPiece Float
+  // GST-exclusive (B2B base price, GST added at checkout)
+  sizesInSet             String   @default("[]")
+  // JSON string: ["S","M","L","XL","XXL","3XL"]
+  moq                    Int      @default(6)
+  // Minimum order quantity (sets) for B2B
+  gstRate                Float    @default(5.0)
+  // Denormalized: 5% (<1000) or 12% (>=1000). Snapshot for order accuracy.
+  isActive               Boolean  @default(true)
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  variants   Variant[]
+  orderItems OrderItem[]
+
+  @@index([category, isActive])
+}
+
+model Variant {
+  id            String @id @default(cuid())
+  productId     String
+  size          String
+  color         String
+  stockQuantity Int    @default(0)
+  sku           String @unique
+
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+
+  @@index([productId])
+  @@index([sku])
+}
+
+model Order {
+  id                String   @id @default(cuid())
+  userId            String
+  orderType         String
+  // "B2C" | "B2B"
+  subtotal          Float
+  taxAmount         Float
+  total             Float
+  status            String   @default("pending")
+  // "pending"|"confirmed"|"shipped"|"delivered"|"cancelled"|"refunded"
+  shippingAddressId String?
+  paymentRef        String?
+  // Mock Razorpay reference
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user            User        @relation(fields: [userId], references: [id])
+  shippingAddress Address?    @relation(fields: [shippingAddressId], references: [id])
+  items           OrderItem[]
+
+  @@index([userId, status])
+}
+
+model OrderItem {
+  id              String @id @default(cuid())
+  orderId         String
+  productId       String
+  variantId       String
+  quantity        Int
+  priceAtPurchase Float
+  gstRate         Float  @default(5.0)
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+  variant Variant @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+}
+
+model B2BApplication {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  businessName String
+  gstin        String
+  businessType String
+  // "retailer" | "wholesaler" | "distributor"
+  status       String    @default("pending")
+  // "pending" | "approved" | "rejected"
+  documents    String    @default("[]")
+  // JSON string: array of uploaded doc paths
+  reviewNotes  String?
+  submittedAt  DateTime  @default(now())
+  reviewedAt   DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

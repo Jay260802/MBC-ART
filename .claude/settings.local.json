@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm --version)",
+      "Bash(npx --version)",
+      "mcp__plugin_context7_context7__query-docs",
+      "WebSearch",
+      "Bash(corepack enable:*)",
+      "Bash(npx create-next-app@latest . --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(npx create-next-app@latest mbc-art --typescript --tailwind --eslint --app --src-dir --import-alias \"@/*\" --no-git --yes)",
+      "Bash(shopt -s dotglob)",
+      "Bash(mv mbc-art/* .)",
+      "Bash(rmdir mbc-art:*)",
+      "Bash(npm install:*)",
+      "Bash(npx prisma:*)",
+      "Bash(npx shadcn@latest init --yes --base-color stone --style new-york --css-variables true)",
+      "Bash(npx shadcn@latest init --help)",
+      "Bash(npx shadcn@latest init --yes --defaults)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
+    ]
+  }
+}
