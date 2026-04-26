@@ -1,4 +1,4 @@
-import { Playfair_Display, Hind, Italiana } from "next/font/google";
+import { Playfair_Display, Hind, Josefin_Sans } from "next/font/google";
 
 /** Premium serif — used for product titles, section headings */
 export const playfair = Playfair_Display({
@@ -15,10 +15,10 @@ export const hind = Hind({
   display: "swap",
 });
 
-/** Refined Italian-inspired serif — used for the main brand name hero display */
-export const cinzel = Italiana({
+/** Geometric sans-serif — used for the main brand name hero display */
+export const cinzel = Josefin_Sans({
   subsets: ["latin"],
-  weight: ["400"],
+  weight: ["300", "400"],
   variable: "--font-cinzel",
   display: "swap",
 });

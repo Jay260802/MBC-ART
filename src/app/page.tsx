@@ -16,7 +16,7 @@ export default function HomePage() {
             Authentic Indian Women&apos;s Wear
           </p>
           <h1
-            className="text-[clamp(3.5rem,15vw,8rem)] font-normal leading-none tracking-widest text-primary"
+            className="text-[clamp(3.5rem,15vw,8rem)] font-light leading-none tracking-widest text-primary"
             style={{ fontFamily: "var(--font-cinzel)" }}
           >
             MBC ART
